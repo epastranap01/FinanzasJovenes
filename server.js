@@ -30,26 +30,33 @@ pool.connect()
     .then(() => console.log('✅ Conectado a PostgreSQL en la Nube'))
     .catch(err => console.error('❌ Error de conexión:', err));
 
-// --- MIDDLEWARE DE PROTECCIÓN ---
+// --- MIDDLEWARE DE PROTECCIÓN MEJORADO ---
 const protect = (req, res, next) => {
-    if (req.session.user) {
-        next();
-    } else {
-        res.status(401).json({ message: 'No autorizado' });
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'No autorizado' });
     }
+
+    // Si el usuario es 'viewer' y trata de hacer algo que no sea VER (GET), lo rebotamos
+    if (req.method !== 'GET' && req.session.user.rol === 'viewer') {
+        return res.status(403).json({ 
+            success: false, 
+            message: 'Acceso denegado: Tu usuario es de solo lectura.' 
+        });
+    }
+    
+    next();
 };
 
 // --- RUTAS API (Adaptadas a Postgres) ---
 
-// Login
+// Actualiza la ruta de login para que guarde el rol en la sesión
 app.post('/api/login', async (req, res) => {
     try {
         const { usuario, password } = req.body;
-        // En Postgres usamos $1, $2 para parámetros en lugar de @Param
-        const result = await pool.query('SELECT id, usuario, nombre FROM usuarios WHERE usuario = $1 AND password = $2', [usuario, password]);
+        const result = await pool.query('SELECT id, usuario, nombre, rol FROM usuarios WHERE usuario = $1 AND password = $2', [usuario, password]);
         
         if (result.rows.length > 0) {
-            req.session.user = result.rows[0];
+            req.session.user = result.rows[0]; // Aquí ya se guarda el rol
             res.json({ success: true });
         } else {
             res.status(401).json({ success: false });
