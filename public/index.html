@@ -18,28 +18,21 @@
             if (!data.loggedIn) {
                 window.location.href = '/login.html';
             } else {
-                // Si es Viewer (Invitado), ocultamos cosas peligrosas visualmente
                 if (data.user.rol === 'viewer') {
-                    // Ocultar formulario de la izquierda
                     const formCol = document.querySelector('.col-lg-4');
                     if(formCol) formCol.style.display = 'none'; 
                     
-                    // Expandir la tabla para usar todo el ancho
                     const tableCol = document.querySelector('.col-lg-8');
                     if(tableCol) {
                         tableCol.classList.remove('col-lg-8');
                         tableCol.classList.add('col-lg-12'); 
                     }
                     
-                    // Inyectar CSS para ocultar botones de editar/borrar
                     const style = document.createElement('style');
-                    style.innerHTML = `
-                        .btn-icon, th:last-child, td:last-child { display: none !important; }
-                    `;
+                    style.innerHTML = `.btn-icon, th:last-child, td:last-child { display: none !important; }`;
                     document.head.appendChild(style);
                 }
                 
-                // Asignar nombre al cargar (si el elemento existe)
                 const nameDisplay = document.getElementById('userNameDisplay');
                 if(nameDisplay && data.user.nombre) {
                     nameDisplay.innerText = data.user.nombre;
@@ -78,11 +71,11 @@
         .chart-container { position: relative; height: 220px; width: 100%; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
 
-        /* TABLA LIMPIA Y RESPONSIVE */
+        /* TABLA */
         .table-custom th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; letter-spacing: 0.5px; }
         .table-custom td { padding: 1rem; vertical-align: middle; font-size: 0.9rem; }
         
-        /* Botones de acción "Ghost" */
+        /* Botones Acción */
         .btn-icon { border: none; background: transparent; padding: 0.3rem; color: #94a3b8; transition: all 0.2s; border-radius: 50%; }
         .btn-icon:hover { background-color: #f1f5f9; color: var(--primary-color); transform: scale(1.1); }
         .btn-icon.delete:hover { color: #dc3545; background-color: #fee2e2; }
@@ -97,12 +90,10 @@
         <span class="navbar-brand d-flex align-items-center gap-2">
             <i class="bi bi-wallet-fill"></i> <span>Finanzas Jóvenes</span>
         </span>
-        
         <div class="d-flex align-items-center gap-3">
             <div class="text-white opacity-75 small">
                 <i class="bi bi-person-circle"></i> <span id="userNameDisplay">Cargando...</span>
             </div>
-            
             <button onclick="logout()" class="btn btn-sm btn-outline-light rounded-pill px-3">
                 Salir <i class="bi bi-box-arrow-right"></i>
             </button>
@@ -155,7 +146,7 @@
                         <table class="table table-hover table-custom mb-0 align-middle">
                             <thead>
                                 <tr>
-                                    <th style="min-width: 90px;">Fecha</th>
+                                    <th style="min-width: 110px;">Fecha</th>
                                     
                                     <th class="d-none d-md-table-cell">Tipo</th>
                                     <th class="d-none d-md-table-cell">Categoría</th>
@@ -163,7 +154,6 @@
                                     <th>Detalle</th>
                                     
                                     <th class="text-end">Monto</th>
-                                    
                                     <th class="text-center">Acción</th>
                                 </tr>
                             </thead>
@@ -177,15 +167,21 @@
 </div>
 
 <script>
-    const API_URL = '/api'; // Ruta relativa importante
+    const API_URL = '/api';
     let chartInstanceBalance = null;
     let chartInstanceGastos = null;
     let allTransactions = [];
 
     const formatCurrency = (val) => new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(val);
     const formatDateISO = (dateStr) => new Date(dateStr).toISOString().split('T')[0];
-    // Fecha corta para movil
-    const formatDateDisplay = (dateStr) => new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+    
+    // --- CAMBIO 1: AGREGAR AÑO (numeric) ---
+    const formatDateDisplay = (dateStr) => new Date(dateStr).toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric', // Esto agrega el "2026"
+        timeZone: 'UTC' 
+    });
 
     async function loadCategorias() {
         try {
@@ -214,7 +210,8 @@
 
             allTransactions.forEach(t => {
                 const isIngreso = t.Tipo === 'Ingreso';
-                // AQUI APLICAMOS LA LOGICA RESPONSIVE EN LAS FILAS TAMBIEN
+                
+                // --- CAMBIO 2: DETALLE EXPANDIBLE ---
                 const row = `
                     <tr id="row-${t.Id}">
                         <td class="text-muted fw-500 small text-nowrap">${formatDateDisplay(t.Fecha)}</td>
@@ -222,7 +219,7 @@
                         <td class="d-none d-md-table-cell"><span class="badge-custom ${isIngreso ? 'badge-ingreso' : 'badge-egreso'}">${t.Tipo}</span></td>
                         <td class="d-none d-md-table-cell fw-bold text-secondary small">${t.CategoriaNombre || '---'}</td>
                         
-                        <td class="text-muted small text-truncate" style="max-width: 140px;">${t.Detalle}</td>
+                        <td class="text-muted small text-wrap">${t.Detalle}</td>
                         
                         <td class="text-end fw-bold ${isIngreso ? 'text-success' : 'text-danger'} text-nowrap">
                             ${isIngreso ? '+' : '-'} ${parseFloat(t.Monto).toFixed(2)}
@@ -238,7 +235,6 @@
         } catch (error) { console.error(error); }
     }
 
-    // --- Funciones del Formulario ---
     function cargarParaEditar(id) {
         const t = allTransactions.find(x => x.Id === id);
         if (!t) return;
@@ -317,12 +313,10 @@
         chartInstanceGastos = new Chart(ctxG, { type: 'bar', data: { labels: dataG.map(d => d.Categoria), datasets: [{ label: 'Lempiras', data: dataG.map(d => d.Total), backgroundColor: '#3498db', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
     }
 
-    // Inicializar
     document.getElementById('fecha').valueAsDate = new Date();
     loadCategorias();
     loadData();
 
-    // LOGOUT CORREGIDO (Sin localhost)
     async function logout() {
         try {
             await fetch('/api/logout', { method: 'POST' });
