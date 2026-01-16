@@ -17,18 +17,13 @@
             if (!data.loggedIn) {
                 window.location.href = '/login.html';
             } else {
-                // Configurar UI según Rol
                 if (data.user.rol === 'viewer') {
-                    // Ocultar botón flotante de agregar
                     const fab = document.getElementById('fabAdd');
                     if(fab) fab.style.display = 'none';
-                    
-                    // Ocultar acciones en tabla
                     const style = document.createElement('style');
                     style.innerHTML = `.btn-icon, th:last-child, td:last-child { display: none !important; }`;
                     document.head.appendChild(style);
                 }
-                // Nombre Usuario
                 const nameDisplay = document.getElementById('userNameDisplay');
                 if(nameDisplay && data.user.nombre) nameDisplay.innerText = data.user.nombre;
             }
@@ -38,40 +33,41 @@
 
     <style>
         :root { --primary-color: #2c3e50; --accent-color: #3498db; --bg-body: #f8f9fa; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: #333; padding-bottom: 80px; /* Espacio para el menu inferior */ }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: #333; padding-bottom: 90px; }
         
-        /* Navbar Superior (Más limpia) */
         .navbar { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 0.8rem 0; }
         .navbar-brand { font-weight: 600; color: var(--primary-color) !important; font-size: 1.1rem; }
         
-        /* Vistas (Tabs) */
         .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
 
-        /* Tarjetas */
         .kpi-card { border: none; border-radius: 16px; background: white; padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 1rem; }
         .kpi-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 0; letter-spacing: -0.5px; }
         .kpi-label { font-size: 0.75rem; text-transform: uppercase; color: #95a5a6; font-weight: 600; letter-spacing: 1px; }
 
-        /* TABLA MÓVIL OPTIMIZADA */
-        .transaction-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; }
+        /* Estilos Gastómetro */
+        .progress-custom { height: 20px; border-radius: 10px; background-color: #e9ecef; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+        .progress-bar-custom { border-radius: 10px; transition: width 1s ease-in-out; }
+
+        /* Transacciones Móviles */
+        .transaction-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
+        .transaction-item:active { background-color: #f1f2f6; }
         .t-date { font-size: 0.75rem; color: #95a5a6; font-weight: 500; }
         .t-cat { font-size: 0.8rem; font-weight: 600; color: var(--primary-color); }
         .t-detail { font-size: 0.85rem; color: #7f8c8d; line-height: 1.2; margin-top: 2px; }
         .t-amount { font-weight: 700; font-size: 1rem; }
 
-        /* BOTTOM NAVIGATION (Estilo App) */
+        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .nav-item { text-align: center; color: #bdc3c7; font-size: 0.75rem; background: none; border: none; flex: 1; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
         .nav-item.active { color: var(--primary-color); font-weight: 600; }
         
-        /* BOTÓN FLOTANTE (FAB) */
         .fab-container { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); }
         .fab { width: 55px; height: 55px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.4); border: 4px solid white; cursor: pointer; transition: transform 0.2s; }
         .fab:active { transform: translateX(-50%) scale(0.9); }
 
-        /* Modal Personalizado */
+        /* Modal */
         .modal-content { border-radius: 20px; border: none; }
         .modal-header { border-bottom: 1px solid #f0f0f0; padding: 1.2rem; }
         .form-control, .form-select { border-radius: 10px; padding: 0.8rem; background-color: #f8fafc; border: 1px solid #e2e8f0; }
@@ -90,40 +86,44 @@
         </div>
     </div>
 </nav>
-<div style="height: 60px;"></div> <div class="container mt-3">
+<div style="height: 60px;"></div>
+
+<div class="container mt-3">
 
     <div id="viewDashboard" class="view-section active">
         <div class="kpi-card bg-white">
-            <div class="kpi-label mb-2">Balance Total</div>
+            <div class="kpi-label mb-2">Balance Disponible</div>
             <div class="d-flex justify-content-between align-items-end">
                 <div class="kpi-value text-primary" id="balanceTotal">L 0.00</div>
                 <div class="text-end">
-                    <div class="text-success small fw-bold"><i class="bi bi-arrow-up"></i> <span id="totalIngresos">0</span></div>
-                    <div class="text-danger small fw-bold"><i class="bi bi-arrow-down"></i> <span id="totalEgresos">0</span></div>
+                    <div class="badge bg-success bg-opacity-10 text-success mb-1">
+                        <i class="bi bi-arrow-up"></i> <span id="totalIngresos">0</span>
+                    </div><br>
+                    <div class="badge bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-arrow-down"></i> <span id="totalEgresos">0</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3">
-            <div class="col-12 col-md-6">
-                <div class="kpi-card">
-                    <h6 class="text-muted small mb-3">Distribución</h6>
-                    <div style="height: 200px;"><canvas id="chartBalance"></canvas></div>
-                </div>
+        <div class="kpi-card">
+            <h6 class="text-muted small mb-3 fw-bold">Salud Financiera</h6>
+            <div class="progress progress-custom">
+                <div id="gastometroBar" class="progress-bar progress-bar-custom" role="progressbar" style="width: 0%"></div>
             </div>
-            <div class="col-12 col-md-6">
-                <div class="kpi-card">
-                    <h6 class="text-muted small mb-3">Gastos x Categoría</h6>
-                    <div style="height: 200px;"><canvas id="chartGastos"></canvas></div>
-                </div>
-            </div>
+            <p class="text-center small mt-2 text-muted mb-0" id="gastometroText">Calculando...</p>
+        </div>
+
+        <div class="kpi-card">
+            <h6 class="text-muted small mb-3 fw-bold">Top Gastos</h6>
+            <div style="height: 250px;"><canvas id="chartGastos"></canvas></div>
         </div>
     </div>
 
     <div id="viewHistory" class="view-section">
         <h6 class="text-muted small mb-3 text-uppercase fw-bold ps-1">Movimientos Recientes</h6>
         <div id="listaMovimientos"></div>
-        </div>
+    </div>
 
 </div>
 
@@ -131,14 +131,10 @@
     <button class="nav-item active" onclick="switchView('dashboard', this)">
         <i class="bi bi-grid-fill"></i> Resumen
     </button>
-    
     <div class="fab-container" id="fabAdd">
-        <div class="fab" onclick="abrirModalNuevo()">
-            <i class="bi bi-plus-lg"></i>
-        </div>
+        <div class="fab" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i></div>
     </div>
     <div style="width: 50px;"></div> 
-
     <button class="nav-item" onclick="switchView('history', this)">
         <i class="bi bi-list-ul"></i> Historial
     </button>
@@ -154,7 +150,6 @@
             <div class="modal-body">
                 <form id="transaccionForm" class="row g-3">
                     <input type="hidden" id="editId" value="">
-                    
                     <div class="col-12 text-center mb-2">
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check" name="tipoRadio" id="radioIngreso" value="Ingreso" checked onchange="updateModalColor()">
@@ -164,31 +159,24 @@
                             <label class="btn btn-outline-danger" for="radioEgreso">Egreso</label>
                         </div>
                     </div>
-
                     <div class="col-12">
                         <label class="form-label small text-muted">Monto (L)</label>
                         <input type="number" step="0.01" class="form-control form-control-lg fw-bold text-center" id="monto" placeholder="0.00" required>
                     </div>
-
                     <div class="col-6">
                         <label class="form-label small text-muted">Fecha</label>
                         <input type="date" class="form-control" id="fecha" required>
                     </div>
-
                     <div class="col-6">
                         <label class="form-label small text-muted">Categoría</label>
-                        <select class="form-select" id="categoriaSelect" required>
-                            <option value="">Cargando...</option>
-                        </select>
+                        <select class="form-select" id="categoriaSelect" required><option value="">Cargando...</option></select>
                     </div>
-
                     <div class="col-12">
                         <label class="form-label small text-muted">Detalle</label>
-                        <textarea class="form-control" id="detalle" rows="2" placeholder="¿En qué gastaste o recibiste?" required></textarea>
+                        <textarea class="form-control" id="detalle" rows="2" placeholder="¿En qué gastaste?" required></textarea>
                     </div>
-
                     <div class="col-12 mt-4">
-                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold" id="btnSubmit">Guardar Movimiento</button>
+                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold" id="btnSubmit">Guardar</button>
                     </div>
                 </form>
             </div>
@@ -200,26 +188,20 @@
 
 <script>
     const API_URL = '/api';
-    let chartInstanceBalance = null;
     let chartInstanceGastos = null;
     let allTransactions = [];
-    let modalInstance = null; // Para manejar el modal
+    let modalInstance = null;
 
-    // Inicializar Modal de Bootstrap
     document.addEventListener('DOMContentLoaded', () => {
         modalInstance = new bootstrap.Modal(document.getElementById('transactionModal'));
         document.getElementById('fecha').valueAsDate = new Date();
     });
 
-    // --- LÓGICA DE VISTAS ---
     function switchView(viewName, btnElement) {
-        // Ocultar todas
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        // Mostrar la elegida
         if(viewName === 'dashboard') document.getElementById('viewDashboard').classList.add('active');
         if(viewName === 'history') document.getElementById('viewHistory').classList.add('active');
 
-        // Actualizar botones nav
         if(btnElement) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             btnElement.classList.add('active');
@@ -232,8 +214,8 @@
         document.getElementById('fecha').valueAsDate = new Date();
         document.getElementById('modalTitle').innerText = 'Nuevo Movimiento';
         document.getElementById('btnSubmit').innerText = 'Guardar';
-        document.getElementById('radioIngreso').checked = true; // Default
-        updateModalColor(); // Reset color
+        document.getElementById('radioIngreso').checked = true;
+        updateModalColor();
         modalInstance.show();
     }
 
@@ -241,15 +223,12 @@
         const isEgreso = document.getElementById('radioEgreso').checked;
         const btn = document.getElementById('btnSubmit');
         if (isEgreso) {
-            btn.classList.remove('btn-success', 'btn-dark');
-            btn.classList.add('btn-danger');
+            btn.classList.remove('btn-success', 'btn-dark'); btn.classList.add('btn-danger');
         } else {
-            btn.classList.remove('btn-danger', 'btn-dark');
-            btn.classList.add('btn-success');
+            btn.classList.remove('btn-danger', 'btn-dark'); btn.classList.add('btn-success');
         }
     }
 
-    // --- CARGA DE DATOS ---
     const formatCurrency = (val) => new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(val);
     const formatDateDisplay = (dateStr) => new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
     const formatDateISO = (dateStr) => new Date(dateStr).toISOString().split('T')[0];
@@ -271,32 +250,29 @@
             document.getElementById('totalIngresos').innerText = formatCurrency(dataResumen.TotalIngresos);
             document.getElementById('totalEgresos').innerText = formatCurrency(dataResumen.TotalEgresos);
             document.getElementById('balanceTotal').innerText = formatCurrency(dataResumen.Balance);
-            renderCharts(dataResumen.TotalIngresos, dataResumen.TotalEgresos);
+            
+            // Renderizar Gastómetro y Gráfico Horizontal
+            renderVisuals(dataResumen.TotalIngresos, dataResumen.TotalEgresos);
 
             const resTrans = await fetch(`${API_URL}/transacciones`);
             allTransactions = await resTrans.json();
-            renderHistoryList(); // Nueva función para renderizar estilo móvil
+            renderHistoryList();
         } catch (error) { console.error(error); }
     }
 
     function renderHistoryList() {
         const container = document.getElementById('listaMovimientos');
         container.innerHTML = '';
-
         allTransactions.forEach(t => {
             const isIngreso = t.Tipo === 'Ingreso';
             const colorClass = isIngreso ? 'text-success' : 'text-danger';
             const sign = isIngreso ? '+' : '-';
-            
-            // Creamos una tarjeta para cada movimiento
             const card = `
                 <div class="transaction-item" onclick="cargarParaEditar(${t.Id})">
                     <div class="d-flex align-items-center gap-3">
                         <div class="text-center" style="min-width: 50px;">
                             <div class="t-date">${formatDateDisplay(t.Fecha)}</div>
-                            <div style="font-size: 1.5rem;">
-                                ${isIngreso ? '<i class="bi bi-arrow-down-circle-fill text-success opacity-50"></i>' : '<i class="bi bi-arrow-up-circle-fill text-danger opacity-50"></i>'}
-                            </div>
+                            <div style="font-size: 1.5rem;">${isIngreso ? '<i class="bi bi-arrow-down-circle-fill text-success opacity-50"></i>' : '<i class="bi bi-arrow-up-circle-fill text-danger opacity-50"></i>'}</div>
                         </div>
                         <div>
                             <div class="t-cat">${t.CategoriaNombre || 'General'}</div>
@@ -304,49 +280,32 @@
                         </div>
                     </div>
                     <div class="t-amount ${colorClass}">${sign}${parseFloat(t.Monto).toFixed(2)}</div>
-                </div>
-            `;
+                </div>`;
             container.innerHTML += card;
         });
     }
 
-    // --- FORMULARIO Y EDICIÓN ---
     function cargarParaEditar(id) {
-        // Si es viewer no hace nada (seguridad visual)
         if(document.getElementById('fabAdd').style.display === 'none') return;
-
         const t = allTransactions.find(x => x.Id === id);
         if (!t) return;
-
         document.getElementById('editId').value = t.Id;
         document.getElementById('fecha').value = formatDateISO(t.Fecha);
         document.getElementById('monto').value = t.Monto;
         document.getElementById('detalle').value = t.Detalle;
         if(t.CategoriaId) document.getElementById('categoriaSelect').value = t.CategoriaId;
-
-        // Set Radio Button
         if (t.Tipo === 'Ingreso') document.getElementById('radioIngreso').checked = true;
         else document.getElementById('radioEgreso').checked = true;
-
         document.getElementById('modalTitle').innerText = 'Editar Movimiento';
         document.getElementById('btnSubmit').innerText = 'Actualizar';
-        
-        // Agregar botón de borrar extra en el modal si es edición
-        // (Podrías agregarlo dinámicamente, pero para simplificar usaremos el mismo botón guardar para actualizar)
-        
         updateModalColor();
         modalInstance.show();
     }
-
-    // Agregar Listener para DELETE (Truco: doble click en la lista o un boton aparte, 
-    // pero para móvil simple, podemos agregar un botón de basura en el modal al editar)
-    // Por ahora mantengamos simple: Editar al tocar.
 
     document.getElementById('transaccionForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('editId').value;
         const tipoSeleccionado = document.querySelector('input[name="tipoRadio"]:checked').value;
-        
         const data = {
             fecha: document.getElementById('fecha').value,
             tipo: tipoSeleccionado,
@@ -354,7 +313,6 @@
             detalle: document.getElementById('detalle').value,
             monto: document.getElementById('monto').value
         };
-
         try {
             if (id) {
                 await fetch(`${API_URL}/transacciones/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -368,17 +326,63 @@
         } catch (error) { console.error(error); }
     });
 
-    // CHARTS (Igual que antes)
-    async function renderCharts(ing, egr) {
-        const ctxB = document.getElementById('chartBalance').getContext('2d');
-        if (chartInstanceBalance) chartInstanceBalance.destroy();
-        chartInstanceBalance = new Chart(ctxB, { type: 'doughnut', data: { labels: ['Ingresos', 'Egresos'], datasets: [{ data: [ing, egr], backgroundColor: ['#198754', '#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } } });
+    // --- NUEVA LÓGICA VISUAL ---
+    async function renderVisuals(ing, egr) {
+        // 1. EL GASTÓMETRO
+        const bar = document.getElementById('gastometroBar');
+        const text = document.getElementById('gastometroText');
+        
+        let porcentaje = 0;
+        if (ing > 0) porcentaje = (egr / ing) * 100;
+        if (porcentaje > 100) porcentaje = 100;
 
+        // Animar la barra
+        setTimeout(() => { bar.style.width = porcentaje + '%'; }, 300);
+
+        // Decidir color y mensaje
+        bar.className = 'progress-bar progress-bar-custom'; // Reset
+        if (porcentaje < 50) {
+            bar.classList.add('bg-success');
+            text.innerHTML = `Excelente control. Has gastado el <b>${porcentaje.toFixed(0)}%</b> de tus ingresos.`;
+        } else if (porcentaje < 85) {
+            bar.classList.add('bg-warning');
+            text.innerHTML = `Ten cuidado. Has gastado el <b>${porcentaje.toFixed(0)}%</b> de tus ingresos.`;
+        } else {
+            bar.classList.add('bg-danger');
+            text.innerHTML = `¡Alerta! Has gastado el <b>${porcentaje.toFixed(0)}%</b> de tus ingresos.`;
+        }
+
+        // 2. EL GRÁFICO HORIZONTAL (Barras)
         const resG = await fetch(`${API_URL}/gastos-categoria`);
         const dataG = await resG.json();
+        
         const ctxG = document.getElementById('chartGastos').getContext('2d');
         if (chartInstanceGastos) chartInstanceGastos.destroy();
-        chartInstanceGastos = new Chart(ctxG, { type: 'bar', data: { labels: dataG.map(d => d.Categoria), datasets: [{ label: 'Lempiras', data: dataG.map(d => d.Total), backgroundColor: '#3498db', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
+        
+        // Configuramos gráfico horizontal (indexAxis: 'y')
+        chartInstanceGastos = new Chart(ctxG, { 
+            type: 'bar', 
+            data: { 
+                labels: dataG.map(d => d.Categoria), 
+                datasets: [{ 
+                    label: 'Gastado', 
+                    data: dataG.map(d => d.Total), 
+                    backgroundColor: '#3498db', 
+                    borderRadius: 5,
+                    barThickness: 20
+                }] 
+            }, 
+            options: { 
+                indexAxis: 'y', // <--- ESTA ES LA CLAVE PARA QUE SEA HORIZONTAL
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11 } } } 
+                }
+            } 
+        });
     }
 
     async function logout() {
@@ -386,7 +390,6 @@
         catch (e) { window.location.href = '/login.html'; }
     }
 
-    // Init
     loadCategorias();
     loadData();
 </script>
